@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www/html  # changed from src to backend
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: ./php
+    volumes:
+      - ./backend:/var/www/html  # changed from src to backend
+    environment:
+      DB_CONNECTION: mongodb
+      DB_HOST: mongodb
+      DB_PORT: 27017
+    depends_on:
+      - mongodb
+
+  frontend:
+    image: node:latest  # Use Node.js image
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: /bin/sh -c "npm install -g @angular/cli && ng serve --host 0.0.0.0 --port 4200"
+    ports:
+      - "4200:4200"
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+  
+
+volumes:
+  mongodb_data:
